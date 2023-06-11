@@ -2,9 +2,14 @@ import { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
 import useApi from "@/hooks/useApi";
 
+type Message = {
+  agent: "user" | "assistant";
+  message: string;
+};
+
 const App = () => {
-  const [sentences, setSentences] = useState("");
-  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [prompt, setPrompt] = useState("");
 
   const { apiUrl } = useContext(GlobalContext);
   const api = useApi();
@@ -14,41 +19,59 @@ const App = () => {
 
     source.onmessage = (event) => {
       const eventData = event.data;
-      setSentences((prev) => [...prev, eventData].join(""));
+
+      setTimeout(() => {
+        setMessages((prev) => {
+          if (prev[prev.length - 1].agent === "user") {
+            return [...prev, { agent: "assistant", message: eventData }];
+          }
+
+          const lastMessage = prev[prev.length - 1].message;
+          const prevMinusLast = prev.slice(0, prev.length - 1);
+          const newMessage: Message = {
+            agent: "assistant",
+            message: lastMessage + eventData,
+          };
+          return [...prevMinusLast, newMessage];
+        });
+      }, 0);
     };
 
-    return () => {
-      source.close();
-    };
+    return () => source.close();
   }, []);
 
-  const sendMessage = async () => {
-    await api.post("/message", { message });
-    setSentences((prev) => [...prev, message].join(""));
-    setMessage("");
+  const sendMessage = async (e: any) => {
+    e.preventDefault();
+    setMessages((prev) => [...prev, { agent: "user", message: prompt }]);
+    setPrompt("");
+    await api.post("/message", { message: prompt });
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-200">
       <section className="h-3/4 w-3/4">
         <div className="overflow-auto h-1/2 bg-white rounded-xl p-4 shadow-lg">
-          <p className="text-lg mb-2">{sentences}</p>
+          {messages.map((message, i) => (
+            <p key={i} className="text-lg mb-2">
+              {message.message}
+            </p>
+          ))}
         </div>
 
-        <div className="mt-8 flex w-full">
+        <form onSubmit={sendMessage} className="mt-8 flex w-full">
           <input
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => setPrompt(e.target.value)}
             className="mr-4 rounded flex-grow"
             type="text"
-            value={message}
+            value={prompt}
           />
           <button
+            type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={sendMessage}
           >
             Send Message
           </button>
-        </div>
+        </form>
       </section>
     </div>
   );
