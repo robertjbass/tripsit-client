@@ -11,9 +11,31 @@ const App = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isResponding, setIsResponding] = useState<boolean>(false);
   const [prompt, setPrompt] = useState("");
-
   const { apiUrl } = useContext(GlobalContext);
   const api = useApi();
+
+  const say = (str: string) => {
+    console.log("say", str);
+    // const synth = window.speechSynthesis;
+    // const utterance = new SpeechSynthesisUtterance();
+    // utterance.text = str;
+    // utterance.rate = 1.0;
+    // utterance.pitch = 1.0;
+
+    // // Wait for voices to be loaded
+    // synth.addEventListener("voiceschanged", () => {
+    //   const voices = synth.getVoices();
+    //   utterance.voice = voices.find((voice) => voice.lang === "en-US") as any;
+    //   synth.speak(utterance);
+    // });
+
+    // // Trigger voiceschanged event if voices are already available
+    // if (synth.getVoices().length > 0) {
+    //   const voices = synth.getVoices();
+    //   utterance.voice = voices.find((voice) => voice.lang === "en-US") as any;
+    //   synth.speak(utterance);
+    // }
+  };
 
   useEffect(() => {
     const source = new EventSource(apiUrl + "/connect");
@@ -45,6 +67,15 @@ const App = () => {
 
     return () => source.close();
   }, []);
+
+  useEffect(() => {
+    if (isResponding) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.agent === "assistant") {
+      say(lastMessage.message);
+    }
+  }, [isResponding]);
 
   const sendMessage = async (e: any) => {
     e.preventDefault();
