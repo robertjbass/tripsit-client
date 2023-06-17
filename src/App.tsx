@@ -14,28 +14,26 @@ const App = () => {
   const { apiUrl } = useContext(GlobalContext);
   const api = useApi();
 
-  const say = (str: string) => {
-    console.log("say", str);
-    // const synth = window.speechSynthesis;
-    // const utterance = new SpeechSynthesisUtterance();
-    // utterance.text = str;
-    // utterance.rate = 1.0;
-    // utterance.pitch = 1.0;
-
-    // // Wait for voices to be loaded
-    // synth.addEventListener("voiceschanged", () => {
-    //   const voices = synth.getVoices();
-    //   utterance.voice = voices.find((voice) => voice.lang === "en-US") as any;
-    //   synth.speak(utterance);
-    // });
-
-    // // Trigger voiceschanged event if voices are already available
-    // if (synth.getVoices().length > 0) {
-    //   const voices = synth.getVoices();
-    //   utterance.voice = voices.find((voice) => voice.lang === "en-US") as any;
-    //   synth.speak(utterance);
-    // }
+  const say = async (str: string) => {
+    try {
+      const { data } = await api.post("/synthesize", { sentence: str });
+      const audioBlob = new Blob(
+        [Uint8Array.from(atob(data.audio), (c) => c.charCodeAt(0))],
+        {
+          type: "audio/mp3",
+        }
+      );
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play();
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+  // useEffect(() => {
+  //   say("Hello, I'm your assistant. How can I help you today?");
+  // }, [prompt]);
 
   useEffect(() => {
     const source = new EventSource(apiUrl + "/connect");
