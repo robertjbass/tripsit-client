@@ -11,10 +11,14 @@ const App = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isResponding, setIsResponding] = useState<boolean>(false);
   const [prompt, setPrompt] = useState("");
+  const [sentencesToRead, setSentencesToRead] = useState<string[]>([]);
+  const [currentSentence, setCurrentSentence] = useState<string>("");
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const { apiUrl } = useContext(GlobalContext);
   const api = useApi();
 
   const say = async (str: string) => {
+    setIsSpeaking(true);
     try {
       const { data } = await api.post("/synthesize", { sentence: str });
       const audioBlob = new Blob(
@@ -25,15 +29,41 @@ const App = () => {
       );
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
+      audio.onended = () => {
+        setIsSpeaking(false);
+      };
+      audio.onerror = () => {
+        console.error("Audio playback failed");
+        setIsSpeaking(false);
+      };
       audio.play();
     } catch (error) {
       console.error(error);
+      setIsSpeaking(false);
     }
   };
 
-  // useEffect(() => {
-  //   say("Hello, I'm your assistant. How can I help you today?");
-  // }, [prompt]);
+  useEffect(() => {
+    if (
+      currentSentence[currentSentence.length - 1] === "." ||
+      currentSentence[currentSentence.length - 1] === "?"
+    ) {
+      setSentencesToRead((prev) => [...prev, currentSentence]);
+      setCurrentSentence("");
+    }
+  }, [currentSentence]);
+
+  const processSentenceQueue = () => {
+    if (isSpeaking || sentencesToRead.length === 0) return;
+
+    const nextSentence = sentencesToRead[0];
+    say(nextSentence);
+    setSentencesToRead((prev) => prev.slice(1));
+  };
+
+  useEffect(() => {
+    processSentenceQueue();
+  }, [isSpeaking, sentencesToRead]);
 
   useEffect(() => {
     const source = new EventSource(apiUrl + "/connect");
@@ -45,6 +75,12 @@ const App = () => {
         setIsResponding(false);
         return;
       }
+
+      setCurrentSentence((prev) => {
+        if (!prev) return eventData;
+
+        return prev + eventData;
+      });
 
       setTimeout(() => {
         setMessages((prev) => {
@@ -58,6 +94,7 @@ const App = () => {
             agent: "assistant",
             message: lastMessage + eventData,
           };
+
           return [...prevMinusLast, newMessage];
         });
       }, 0);
@@ -65,15 +102,6 @@ const App = () => {
 
     return () => source.close();
   }, []);
-
-  useEffect(() => {
-    if (isResponding) return;
-
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.agent === "assistant") {
-      say(lastMessage.message);
-    }
-  }, [isResponding]);
 
   const sendMessage = async (e: any) => {
     e.preventDefault();
