@@ -1,9 +1,8 @@
 import type { Message } from "@/context/types";
 
-const Message = ({ message, key }: { message: Message; key: number }) => {
+const Message = ({ message }: { message: Message }) => {
   return (
     <p
-      key={key}
       className={[
         "text-lg mb-2",
         message.agent === "user" && "font-semibold",
