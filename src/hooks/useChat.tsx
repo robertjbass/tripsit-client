@@ -1,7 +1,7 @@
-import { Message } from "@/context/types";
 import useApi from "@/hooks/useApi";
 import { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
+import type { Message } from "@/context/types";
 
 const useChat = () => {
   const api = useApi();
@@ -79,15 +79,12 @@ const useChat = () => {
     processTtsQueue();
   }, [isSpeaking, sentencesToRead]);
 
-  // const convertTextToAudio = async (text: string) => {};
-
   //? Send a sentence to the backend for processing and play mp3 response
-  const say = async (str: string) => {
-    if (isMuted) return;
-    setIsSpeaking(true);
-
+  const convertTextToAudioUrl = async (
+    text: string
+  ): Promise<{ audioUrl: string | null }> => {
     try {
-      const { data } = await api.post("/synthesize", { sentence: str });
+      const { data } = await api.post("/synthesize", { sentence: text });
       const audioBlob = new Blob(
         [Uint8Array.from(atob(data.audio), (c) => c.charCodeAt(0))],
         {
@@ -95,23 +92,33 @@ const useChat = () => {
         }
       );
       const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.onended = () => {
-        setIsSpeaking(false);
-      };
-      audio.onerror = () => {
-        console.error("Audio playback failed");
-        setIsSpeaking(false);
-      };
-      audio.play();
+      return { audioUrl };
     } catch (error) {
       console.error(error);
-      setIsSpeaking(false);
+      return { audioUrl: null };
     }
   };
 
-  //* Prompt the backend to generate a new response
-  //? SSE endpoint will stream the response back
+  //? Generate an audio url from string and play it
+  const say = async (str: string) => {
+    if (isMuted) return;
+    setIsSpeaking(true);
+
+    const { audioUrl } = await convertTextToAudioUrl(str);
+    if (!audioUrl) return;
+
+    const audio = new Audio(audioUrl);
+    audio.onended = () => {
+      setIsSpeaking(false);
+    };
+    audio.onerror = () => {
+      console.error("Audio playback failed");
+      setIsSpeaking(false);
+    };
+    audio.play();
+  };
+
+  //* Prompt the backend to generate a new response with SSE
   const sendMessage = async (e: any) => {
     e.preventDefault();
     if (!prompt) return;
