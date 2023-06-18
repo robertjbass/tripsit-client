@@ -4,6 +4,7 @@ import axios from "axios";
 
 const useApi = () => {
   const { apiUrl, sessionId } = useContext(GlobalContext);
+
   const api = axios.create({
     baseURL: apiUrl,
   });

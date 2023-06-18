@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
-import Chat from "@/components/Chat";
 import { HiOutlineVolumeOff, HiOutlineVolumeUp } from "react-icons/hi";
+import Chat from "@/components/Chat";
 
 const App = () => {
   const { isMuted, setIsMuted } = useContext(GlobalContext);

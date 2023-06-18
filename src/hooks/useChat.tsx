@@ -1,22 +1,35 @@
 import useApi from "@/hooks/useApi";
 import { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
+import { v4 } from "uuid";
 import type { Message } from "@/context/types";
 
 const useChat = () => {
-  const api = useApi();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isResponding, setIsResponding] = useState<boolean>(false);
   const [prompt, setPrompt] = useState("");
   const [sentencesToRead, setSentencesToRead] = useState<string[]>([]);
   const [currentSentence, setCurrentSentence] = useState<string>("");
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-  const { apiUrl, isMuted } = useContext(GlobalContext);
+  const { apiUrl, isMuted, sessionId, setSessionId } =
+    useContext(GlobalContext);
+
+  const api = useApi();
+
+  //* Create a session ID if one does not exist
+  useEffect(() => {
+    if (sessionId) return;
+
+    const uuid = v4();
+    setSessionId(uuid);
+  }, []);
 
   //* Connect to the SSE endpoint and listen for messages
   //? Format and update message state as they stream in
   useEffect(() => {
-    const source = new EventSource(apiUrl + "/connect");
+    if (!sessionId) return;
+
+    const source = new EventSource(apiUrl + `/connect?session_id=${sessionId}`);
 
     source.onmessage = (event) => {
       const eventData = event.data;
@@ -29,6 +42,7 @@ const useChat = () => {
       //? Trigger a effect to add sentence to the tts queue
       setCurrentSentence((prev) => {
         if (!prev) return eventData;
+
         return prev + eventData;
       });
 
@@ -54,7 +68,7 @@ const useChat = () => {
     };
 
     return () => source.close();
-  }, []);
+  }, [sessionId]);
 
   //* If muted while speaking, prevent the next sentence from being read
   useEffect(() => {
@@ -65,10 +79,16 @@ const useChat = () => {
 
   //* Add a sentence to the list of sentences to read
   useEffect(() => {
-    if (
-      currentSentence[currentSentence.length - 1] === "." ||
-      currentSentence[currentSentence.length - 1] === "?"
-    ) {
+    const secondLastCharIsNotNumber = isNaN(
+      Number(currentSentence[currentSentence.length - 2])
+    );
+
+    const endsWithPeriod =
+      currentSentence.endsWith(".") && secondLastCharIsNotNumber;
+
+    const endsWithQuestionMark = currentSentence.endsWith("?");
+
+    if (endsWithQuestionMark || endsWithPeriod) {
       setSentencesToRead((prev) => [...prev, currentSentence]);
       setCurrentSentence("");
     }
