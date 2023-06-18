@@ -8,12 +8,14 @@ type Action = {
 type User = { [key: string]: any } | null;
 type State = {
   apiUrl: string;
+
   user: User;
   setUser: (user: User) => void;
 };
 
 const initialState: State = {
   apiUrl: import.meta.env.VITE_API_URL,
+
   user: null,
   setUser: () => {},
 };

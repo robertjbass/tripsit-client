@@ -14,11 +14,11 @@ const InputForm = ({
   return (
     <form
       onSubmit={sendMessage}
-      className="mt-4 w-full grid grid-flow-row md:grid-cols-3 sm:grid-cols-1 gap-4"
+      className="mt-4 grid grid-flow-row md:grid-cols-3 sm:grid-cols-1 gap-4 transition-all"
     >
       <input
         onChange={(e) => setPrompt(e.target.value)}
-        className="rounded flex-grow px-4 sm:col-span-1 md:col-span-2 h-12"
+        className="rounded px-4 sm:col-span-1 md:col-span-2 h-12 w-full"
         type="text"
         value={prompt}
       />
