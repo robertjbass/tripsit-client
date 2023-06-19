@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { IoMdSend } from "react-icons/io";
-import { BsFillMicFill } from "react-icons/bs";
+import { BsFillMicFill, BsFillStopCircleFill } from "react-icons/bs";
+import { GlobalContext } from "@/context/GlobalContext";
 
 type InputFormProps = {
-  sendMessage: (e: any) => void;
+  sendMessage: (e?: any) => void;
   isResponding: boolean;
   prompt: string;
   setPrompt: (str: string) => void;
@@ -34,53 +35,72 @@ const InputForm = ({
   prompt,
   setPrompt,
 }: InputFormProps) => {
-  const [transcript, setTranscript] = useState("");
+  const { isInfinateConversation } = useContext(GlobalContext);
   const [isListening, setIsListening] = useState(false);
+  const [userHasInteracted, setUserHasInteracted] = useState(false);
 
+  //* If done listening and prompt exists, send message
   useEffect(() => {
-    console.log(transcript);
-    setPrompt(transcript);
-  }, [transcript]);
+    if (isListening) return;
+    if (prompt.length > 0) sendMessage();
+  }, [isListening]);
 
+  //* Handle continuous conversation
   useEffect(() => {
+    if (isResponding || !userHasInteracted) return;
+
+    if (isInfinateConversation) handleListening();
+  }, [isResponding]);
+
+  const handleListening = () => {
+    setUserHasInteracted(true);
+    if (isListening) setIsListening(false);
+
+    setIsListening((prev) => !prev);
     let finalTranscript = "";
     let speechRecognition = new SpeechRecognition();
 
-    speechRecognition.onstart = () => {
-      console.log("Speech recognition service has started");
-    };
+    try {
+      speechRecognition.onstart = () => {
+        console.log("Speech recognition service has started");
+      };
 
-    speechRecognition.onresult = (event: any) => {
-      let interimTranscript = "";
+      speechRecognition.onresult = (event: any) => {
+        let interimTranscript = "";
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
-        } else {
-          interimTranscript += transcript;
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + " ";
+          } else {
+            interimTranscript += transcript;
+          }
         }
-      }
-      setTranscript(finalTranscript + interimTranscript);
-    };
+        setPrompt(finalTranscript + interimTranscript);
+      };
 
-    speechRecognition.onerror = (event: any) => {
-      console.log("Error occurred in recognition: " + event.error);
-    };
+      speechRecognition.onerror = (event: any) => {
+        console.log("Error occurred in recognition: " + event.error);
+      };
 
-    if (isListening) {
+      speechRecognition.onend = () => {
+        speechRecognition.stop();
+        console.log("Speech recognition ended");
+        setIsListening(false);
+      };
+
       finalTranscript = "";
       speechRecognition.start();
       console.log("Listening...");
-    } else {
+    } catch (error) {
       speechRecognition.stop();
-      console.log("Stopped Listening");
+      console.error(error);
+      setIsListening(false);
     }
+  };
 
-    return () => {
-      speechRecognition.stop();
-    };
-  }, [isListening]);
+  const sendButtonDisabled = isResponding || isListening || prompt.length === 0;
+  const recordButtonDisabled = isResponding || prompt.length > 0;
 
   return (
     <form
@@ -95,29 +115,33 @@ const InputForm = ({
       />
       <div className="sm:col-span-1 md:col-span-1 flex gap-4">
         <button
-          disabled={isResponding}
+          disabled={sendButtonDisabled}
           type="submit"
           className={[
             "text-white font-bold py-2 px-4 rounded h-12 w-full",
-            isResponding
-              ? "bg-gray-300"
-              : "bg-blue-500 hover:bg-blue-700 cursor-not-allowed",
+            sendButtonDisabled
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-700",
           ].join(" ")}
         >
           <IoMdSend className="inline ml-2" />
         </button>
         <button
-          disabled={isResponding}
-          onClick={() => setIsListening((prevState) => !prevState)}
+          disabled={recordButtonDisabled}
+          onClick={handleListening}
           type="button"
           className={[
             "text-white font-bold py-2 px-4 rounded h-12 w-full",
             isResponding
-              ? "bg-gray-300"
-              : "bg-blue-500 hover:bg-blue-700 cursor-not-allowed",
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-700",
           ].join(" ")}
         >
-          <BsFillMicFill className="inline ml-2" />
+          {!isListening ? (
+            <BsFillMicFill className="inline ml-2" />
+          ) : (
+            <BsFillStopCircleFill className="inline ml-2 animate-pulse" />
+          )}
         </button>
       </div>
     </form>

@@ -17,6 +17,9 @@ type State = {
 
   isMuted: boolean;
   setIsMuted: (isMuted: boolean) => void;
+
+  isInfinateConversation: boolean;
+  setIsInfinateConversation: (isInfinateConversation: boolean) => void;
 };
 
 const initialState: State = {
@@ -30,6 +33,9 @@ const initialState: State = {
 
   isMuted: false,
   setIsMuted: () => {},
+
+  isInfinateConversation: false,
+  setIsInfinateConversation: () => {},
 };
 
 const userReducer = (state: State, action: Action) => {
@@ -40,6 +46,8 @@ const userReducer = (state: State, action: Action) => {
       return { ...state, isMuted: action.payload };
     case "SET_SESSION_ID":
       return { ...state, sessionId: action.payload };
+    case "SET_IS_INFANATE_CONVERSATION":
+      return { ...state, isInfinateConversation: action.payload };
     default:
       return state;
   }
@@ -61,6 +69,12 @@ export const GlobalProvider: React.FC<{
     },
     setSessionId: (sessionId: string) => {
       dispatch({ type: "SET_SESSION_ID", payload: sessionId });
+    },
+    setIsInfinateConversation: (isInfinateConversation: boolean) => {
+      dispatch({
+        type: "SET_IS_INFANATE_CONVERSATION",
+        payload: isInfinateConversation,
+      });
     },
   };
 

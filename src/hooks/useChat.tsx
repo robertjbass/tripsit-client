@@ -139,8 +139,8 @@ const useChat = () => {
   };
 
   //* Prompt the backend to generate a new response with SSE
-  const sendMessage = async (e: any) => {
-    e.preventDefault();
+  const sendMessage = async (e?: any) => {
+    if (e) e.preventDefault();
     if (!prompt) return;
 
     setIsResponding(true);
