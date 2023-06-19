@@ -11,6 +11,7 @@ const useChat = () => {
   const [sentencesToRead, setSentencesToRead] = useState<string[]>([]);
   const [currentSentence, setCurrentSentence] = useState<string>("");
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [allAudioHasPlayed, setAllAudioHasPlayed] = useState<boolean>(false);
   const { apiUrl, isMuted, sessionId, setSessionId } =
     useContext(GlobalContext);
 
@@ -23,6 +24,23 @@ const useChat = () => {
     const uuid = v4();
     setSessionId(uuid);
   }, []);
+
+  useEffect(() => {
+    console.log("allAudioHasPlayed", allAudioHasPlayed);
+  }, [allAudioHasPlayed]);
+
+  useEffect(() => {
+    if (
+      isResponding ||
+      isSpeaking ||
+      sentencesToRead.length > 0 ||
+      currentSentence.length > 0
+    ) {
+      setAllAudioHasPlayed(false);
+    } else {
+      setAllAudioHasPlayed(true);
+    }
+  }, [isResponding, isSpeaking, sentencesToRead, currentSentence]);
 
   //* Connect to the SSE endpoint and listen for messages
   //? Format and update message state as they stream in
@@ -149,12 +167,12 @@ const useChat = () => {
     await api.post("/message", { message: prompt });
   };
 
-  const processTtsQueue = () => {
+  const processTtsQueue = async () => {
     if (isSpeaking || sentencesToRead.length === 0) return;
 
     const nextSentence = sentencesToRead[0];
-    say(nextSentence);
     setSentencesToRead((prev) => prev.slice(1));
+    await say(nextSentence);
   };
 
   return {
@@ -163,6 +181,8 @@ const useChat = () => {
     sendMessage,
     setPrompt,
     prompt,
+    isSpeaking: !allAudioHasPlayed && isSpeaking,
+    allAudioHasPlayed,
   };
 };
 

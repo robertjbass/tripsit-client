@@ -7,6 +7,7 @@ type InputFormProps = {
   sendMessage: (e?: any) => void;
   isResponding: boolean;
   prompt: string;
+  allAudioHasPlayed: boolean;
   setPrompt: (str: string) => void;
 };
 
@@ -34,6 +35,7 @@ const InputForm = ({
   isResponding,
   prompt,
   setPrompt,
+  allAudioHasPlayed,
 }: InputFormProps) => {
   const { isInfinateConversation } = useContext(GlobalContext);
   const [isListening, setIsListening] = useState(false);
@@ -47,10 +49,10 @@ const InputForm = ({
 
   //* Handle continuous conversation
   useEffect(() => {
-    if (isResponding || !userHasInteracted) return;
-
-    if (isInfinateConversation) handleListening();
-  }, [isResponding]);
+    if (userHasInteracted && isInfinateConversation) {
+      handleListening();
+    }
+  }, [allAudioHasPlayed]);
 
   const handleListening = () => {
     setUserHasInteracted(true);
@@ -100,7 +102,6 @@ const InputForm = ({
   };
 
   const sendButtonDisabled = isResponding || isListening || prompt.length === 0;
-  const recordButtonDisabled = isResponding || prompt.length > 0;
 
   return (
     <form
@@ -127,12 +128,12 @@ const InputForm = ({
           <IoMdSend className="inline ml-2" />
         </button>
         <button
-          disabled={recordButtonDisabled}
+          disabled={!allAudioHasPlayed}
           onClick={handleListening}
           type="button"
           className={[
             "text-white font-bold py-2 px-4 rounded h-12 w-full",
-            isResponding
+            !allAudioHasPlayed
               ? "bg-gray-300 cursor-not-allowed"
               : "bg-blue-500 hover:bg-blue-700",
           ].join(" ")}
