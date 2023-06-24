@@ -1,11 +1,13 @@
+import FBAuth from "firebase/auth";
 import React, { createContext, useReducer } from "react";
+
+type User = FBAuth.User | null;
 
 type Action = {
   type: any;
   payload?: any;
 };
 
-type User = { [key: string]: any } | null;
 type State = {
   apiUrl: string;
 
@@ -22,34 +24,64 @@ type State = {
   setIsInfinateConversation: (isInfinateConversation: boolean) => void;
 };
 
+const getCachedItem = (key: string) => {
+  const stringifiedState = localStorage.getItem("tripsitterState");
+  const item = stringifiedState ? JSON.parse(stringifiedState)[key] : null;
+  if (item) return item;
+  else return null;
+};
+
+const updateCachedState = (state: State) => {
+  localStorage.setItem("tripsitterState", JSON.stringify(state));
+};
+
 const initialState: State = {
   apiUrl: import.meta.env.VITE_API_URL,
 
-  user: null,
+  user: getCachedItem("user") || null,
   setUser: () => {},
 
   sessionId: null,
   setSessionId: () => {},
 
-  isMuted: false,
+  isMuted: getCachedItem("isMuted") || false,
   setIsMuted: () => {},
 
-  isInfinateConversation: false,
+  isInfinateConversation: getCachedItem("isInfinateConversation") || false,
   setIsInfinateConversation: () => {},
 };
 
 const userReducer = (state: State, action: Action) => {
+  let newState: State = state;
   switch (action.type) {
     case "SET_USER":
-      return { ...state, user: action.payload };
+      const user = action.payload;
+      if (!user) {
+        localStorage.removeItem("tripsitterState");
+        return {} as State;
+      }
+
+      newState = { ...state, user };
+      updateCachedState(newState);
+      return newState;
+
     case "SET_IS_MUTED":
-      return { ...state, isMuted: action.payload };
+      newState = { ...state, isMuted: action.payload };
+      updateCachedState(newState);
+      return newState;
+
     case "SET_SESSION_ID":
-      return { ...state, sessionId: action.payload };
+      newState = { ...state, sessionId: action.payload };
+      updateCachedState(newState);
+      return newState;
+
     case "SET_IS_INFANATE_CONVERSATION":
-      return { ...state, isInfinateConversation: action.payload };
+      newState = { ...state, isInfinateConversation: action.payload };
+      updateCachedState(newState);
+      return newState;
+
     default:
-      return state;
+      return newState;
   }
 };
 
