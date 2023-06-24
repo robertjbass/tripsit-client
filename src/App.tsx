@@ -1,19 +1,32 @@
 import { useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
+import { HiOutlineVolumeOff, HiOutlineVolumeUp } from "react-icons/hi";
+import { TbInfinity, TbInfinityOff } from "react-icons/tb";
+import Chat from "@/components/Chat";
 
 const App = () => {
-  const { user, setUser, apiUrl } = useContext(GlobalContext);
+  const {
+    isMuted,
+    setIsMuted,
+    isInfinateConversation,
+    setIsInfinateConversation,
+  } = useContext(GlobalContext);
+
   return (
-    <>
-      <div className="text-xl">API URL: {apiUrl}</div>
-      {user && <div className="text-3xl">{JSON.stringify(user, null, 2)}</div>}
-      <button
-        className="border-2 px-2 py-1 rounded-full"
-        onClick={() => setUser({ name: "Bob", age: 32 })}
-      >
-        Set Bob
-      </button>
-    </>
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-200">
+      <nav className="absolute top-0 p-4 flex justify-end w-full gap-4">
+        <button
+          onClick={() => setIsInfinateConversation(!isInfinateConversation)}
+          className="text-2xl"
+        >
+          {isInfinateConversation ? <TbInfinity /> : <TbInfinityOff />}
+        </button>
+        <button onClick={() => setIsMuted(!isMuted)} className="text-2xl">
+          {isMuted ? <HiOutlineVolumeOff /> : <HiOutlineVolumeUp />}
+        </button>
+      </nav>
+      <Chat />
+    </div>
   );
 };
 
