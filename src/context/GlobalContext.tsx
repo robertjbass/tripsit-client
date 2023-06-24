@@ -35,8 +35,10 @@ const updateCachedState = (state: State) => {
   localStorage.setItem("tripsitterState", JSON.stringify(state));
 };
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const initialState: State = {
-  apiUrl: import.meta.env.VITE_API_URL,
+  apiUrl,
 
   user: getCachedItem("user") || null,
   setUser: () => {},
@@ -58,7 +60,7 @@ const userReducer = (state: State, action: Action) => {
       const user = action.payload;
       if (!user) {
         localStorage.removeItem("tripsitterState");
-        return {} as State;
+        return { apiUrl } as State;
       }
 
       newState = { ...state, user };
