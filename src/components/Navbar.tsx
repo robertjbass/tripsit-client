@@ -5,6 +5,7 @@ import { TbInfinity, TbInfinityOff } from "react-icons/tb";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FiLogOut, FiSettings } from "react-icons/fi";
 import useFirebase from "@/hooks/useFirebase";
+import Settings from "./Settings";
 
 const Navbar = () => {
   const {
@@ -12,15 +13,20 @@ const Navbar = () => {
     setIsMuted,
     isInfinateConversation,
     setIsInfinateConversation,
+    setShowSettings,
   } = useContext(GlobalContext);
   const { signOut } = useFirebase();
 
   const [showMenu, setShowMenu] = useState(false);
 
+  const handleToggleMenu = () => {
+    setShowSettings(false);
+    setShowMenu((menuState) => !menuState);
+  };
+
   const handleShowSettings = () => {
-    // TODO: Show settings
-    console.log("Clicked");
     setShowMenu(false);
+    setShowSettings(true);
   };
 
   const menuButtons = [
@@ -33,6 +39,7 @@ const Navbar = () => {
 
   return (
     <>
+      <Settings />
       <nav className="absolute top-0 p-4 flex justify-end w-full gap-4 z-10">
         <button
           onClick={() => setIsInfinateConversation(!isInfinateConversation)}
@@ -53,7 +60,7 @@ const Navbar = () => {
           {isMuted ? <HiOutlineVolumeOff /> : <HiOutlineVolumeUp />}
         </button>
         <button
-          onClick={() => setShowMenu((menuState) => !menuState)}
+          onClick={handleToggleMenu}
           className="text-2xl hover:opacity-50"
         >
           <GiHamburgerMenu />

@@ -1,28 +1,5 @@
-import FBAuth from "firebase/auth";
 import React, { createContext, useReducer } from "react";
-
-type User = FBAuth.User | null;
-
-type Action = {
-  type: any;
-  payload?: any;
-};
-
-type State = {
-  apiUrl: string;
-
-  user: User;
-  setUser: (user: User) => void;
-
-  sessionId: string | null;
-  setSessionId: (sessionId: string) => void;
-
-  isMuted: boolean;
-  setIsMuted: (isMuted: boolean) => void;
-
-  isInfinateConversation: boolean;
-  setIsInfinateConversation: (isInfinateConversation: boolean) => void;
-};
+import { Action, User } from "./types";
 
 const getCachedItem = (key: string) => {
   const stringifiedState = localStorage.getItem("tripsitterState");
@@ -37,6 +14,25 @@ const updateCachedState = (state: State) => {
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+type State = {
+  apiUrl: string;
+
+  user: User;
+  setUser: (user: User) => void;
+
+  sessionId: string | null;
+  setSessionId: (sessionId: string) => void;
+
+  isMuted: boolean;
+  setIsMuted: (isMuted: boolean) => void;
+
+  showSettings: boolean;
+  setShowSettings: (showSettings: boolean) => void;
+
+  isInfinateConversation: boolean;
+  setIsInfinateConversation: (isInfinateConversation: boolean) => void;
+};
+
 const initialState: State = {
   apiUrl,
 
@@ -48,6 +44,9 @@ const initialState: State = {
 
   isMuted: getCachedItem("isMuted") || false,
   setIsMuted: () => {},
+
+  showSettings: false,
+  setShowSettings: () => {},
 
   isInfinateConversation: getCachedItem("isInfinateConversation") || false,
   setIsInfinateConversation: () => {},
@@ -82,6 +81,10 @@ const userReducer = (state: State, action: Action) => {
       updateCachedState(newState);
       return newState;
 
+    case "SET_SHOW_SETTINGS":
+      newState = { ...state, showSettings: action.payload };
+      return newState;
+
     default:
       return newState;
   }
@@ -109,6 +112,9 @@ export const GlobalProvider: React.FC<{
         type: "SET_IS_INFANATE_CONVERSATION",
         payload: isInfinateConversation,
       });
+    },
+    setShowSettings: (showSettings: boolean) => {
+      dispatch({ type: "SET_SHOW_SETTINGS", payload: showSettings });
     },
   };
 
