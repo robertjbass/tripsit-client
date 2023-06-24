@@ -13,6 +13,7 @@ const Navbar = () => {
     setIsMuted,
     isInfinateConversation,
     setIsInfinateConversation,
+    showSettings,
     setShowSettings,
   } = useContext(GlobalContext);
   const { signOut } = useFirebase();
@@ -20,7 +21,15 @@ const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
 
   const handleToggleMenu = () => {
-    setShowSettings(false);
+    if (showSettings) {
+      setShowSettings(false);
+
+      setTimeout(() => {
+        setShowMenu((menuState) => !menuState);
+      }, 350);
+
+      return;
+    }
     setShowMenu((menuState) => !menuState);
   };
 
@@ -37,10 +46,14 @@ const Navbar = () => {
     },
   ];
 
+  const handleCloseOverlays = () => {
+    setShowMenu(false);
+    setShowSettings(false);
+  };
+
   return (
     <>
-      <Settings />
-      <nav className="absolute top-0 p-4 flex justify-end w-full gap-4 z-10">
+      <nav className="absolute top-0 right-0 w-1/2 p-4 flex justify-end gap-4 z-10">
         <button
           onClick={() => setIsInfinateConversation(!isInfinateConversation)}
           className={[
@@ -67,10 +80,10 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {showMenu && (
+      {(showMenu || showSettings) && (
         <div
           id="backdrop"
-          onClick={() => setShowMenu(false)}
+          onClick={handleCloseOverlays}
           className="absolute top-0 left-0 h-full w-full bg-black/20"
         />
       )}
@@ -102,6 +115,7 @@ const Navbar = () => {
           </button>
         </div>
       </div>
+      <Settings />
     </>
   );
 };
