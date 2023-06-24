@@ -12,7 +12,11 @@ const Settings = () => {
         showSettings ? "w-full" : "w-0"
       } overflow-hidden`}
     >
-      <div className="p-4 flex">
+      <div
+        className={`p-4 flex transition-opacity duration-500 ease-in-out ${
+          showSettings ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <button
           className="text-2xl hover:text-gray-500 transition-colors flex z-50"
           onClick={() => setShowSettings(false)}
