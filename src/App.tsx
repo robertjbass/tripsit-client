@@ -1,130 +1,31 @@
-import { useState, useEffect, useContext } from "react";
+import { useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
-import useApi from "@/hooks/useApi";
-
-type Message = {
-  agent: "user" | "assistant";
-  message: string;
-};
+import { HiOutlineVolumeOff, HiOutlineVolumeUp } from "react-icons/hi";
+import { TbInfinity, TbInfinityOff } from "react-icons/tb";
+import Chat from "@/components/Chat";
 
 const App = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isResponding, setIsResponding] = useState<boolean>(false);
-  const [prompt, setPrompt] = useState("");
-  const { apiUrl } = useContext(GlobalContext);
-  const api = useApi();
-
-  const say = (str: string) => {
-    console.log("say", str);
-    // const synth = window.speechSynthesis;
-    // const utterance = new SpeechSynthesisUtterance();
-    // utterance.text = str;
-    // utterance.rate = 1.0;
-    // utterance.pitch = 1.0;
-
-    // // Wait for voices to be loaded
-    // synth.addEventListener("voiceschanged", () => {
-    //   const voices = synth.getVoices();
-    //   utterance.voice = voices.find((voice) => voice.lang === "en-US") as any;
-    //   synth.speak(utterance);
-    // });
-
-    // // Trigger voiceschanged event if voices are already available
-    // if (synth.getVoices().length > 0) {
-    //   const voices = synth.getVoices();
-    //   utterance.voice = voices.find((voice) => voice.lang === "en-US") as any;
-    //   synth.speak(utterance);
-    // }
-  };
-
-  useEffect(() => {
-    const source = new EventSource(apiUrl + "/connect");
-
-    source.onmessage = (event) => {
-      const eventData = event.data;
-
-      if (event.data === "[DONE]") {
-        setIsResponding(false);
-        return;
-      }
-
-      setTimeout(() => {
-        setMessages((prev) => {
-          if (prev[prev.length - 1].agent === "user") {
-            return [...prev, { agent: "assistant", message: eventData }];
-          }
-
-          const lastMessage = prev[prev.length - 1].message;
-          const prevMinusLast = prev.slice(0, prev.length - 1);
-          const newMessage: Message = {
-            agent: "assistant",
-            message: lastMessage + eventData,
-          };
-          return [...prevMinusLast, newMessage];
-        });
-      }, 0);
-    };
-
-    return () => source.close();
-  }, []);
-
-  useEffect(() => {
-    if (isResponding) return;
-
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.agent === "assistant") {
-      say(lastMessage.message);
-    }
-  }, [isResponding]);
-
-  const sendMessage = async (e: any) => {
-    e.preventDefault();
-    if (!prompt) return;
-
-    setIsResponding(true);
-    setMessages((prev) => [...prev, { agent: "user", message: prompt }]);
-    setPrompt("");
-    await api.post("/message", { message: prompt });
-  };
+  const {
+    isMuted,
+    setIsMuted,
+    isInfinateConversation,
+    setIsInfinateConversation,
+  } = useContext(GlobalContext);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-200">
-      <section className="h-3/4 w-3/4">
-        <div className="overflow-auto h-1/2 bg-white rounded-xl p-4 shadow-lg">
-          {messages.map((message, i) => (
-            <p
-              key={i}
-              className={[
-                "text-lg mb-2",
-                message.agent === "user" && "font-semibold",
-              ].join(" ")}
-            >
-              {message.message}
-            </p>
-          ))}
-        </div>
-
-        <form onSubmit={sendMessage} className="mt-8 flex w-full">
-          <input
-            onChange={(e) => setPrompt(e.target.value)}
-            className="mr-4 rounded flex-grow"
-            type="text"
-            value={prompt}
-          />
-          <button
-            disabled={isResponding}
-            type="submit"
-            className={[
-              "text-white font-bold py-2 px-4 rounded",
-              isResponding
-                ? "bg-gray-300"
-                : "bg-blue-500 hover:bg-blue-700 cursor-not-allowed",
-            ].join(" ")}
-          >
-            Send Message
-          </button>
-        </form>
-      </section>
+      <nav className="absolute top-0 p-4 flex justify-end w-full gap-4">
+        <button
+          onClick={() => setIsInfinateConversation(!isInfinateConversation)}
+          className="text-2xl"
+        >
+          {isInfinateConversation ? <TbInfinity /> : <TbInfinityOff />}
+        </button>
+        <button onClick={() => setIsMuted(!isMuted)} className="text-2xl">
+          {isMuted ? <HiOutlineVolumeOff /> : <HiOutlineVolumeUp />}
+        </button>
+      </nav>
+      <Chat />
     </div>
   );
 };
