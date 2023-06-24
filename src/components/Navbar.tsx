@@ -54,6 +54,13 @@ const Navbar = () => {
         </button>
       </nav>
 
+      {showMenu && (
+        <div
+          id="backdrop"
+          onClick={() => setShowMenu(false)}
+          className="absolute top-0 left-0 h-full w-full bg-black/20"
+        />
+      )}
       <div
         id="sidebar"
         className={`fixed top-0 right-0 h-full transition-all duration-300 ease-in-out ${
