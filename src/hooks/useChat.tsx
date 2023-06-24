@@ -26,10 +26,6 @@ const useChat = () => {
   }, []);
 
   useEffect(() => {
-    console.log("allAudioHasPlayed", allAudioHasPlayed);
-  }, [allAudioHasPlayed]);
-
-  useEffect(() => {
     if (
       isResponding ||
       isSpeaking ||
@@ -91,6 +87,7 @@ const useChat = () => {
   //* If muted while speaking, prevent the next sentence from being read
   useEffect(() => {
     if (!isMuted) return;
+
     setSentencesToRead([]);
     setCurrentSentence("");
   }, [isMuted]);
