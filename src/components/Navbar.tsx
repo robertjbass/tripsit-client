@@ -21,16 +21,10 @@ const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
 
   const handleToggleMenu = () => {
+    setShowMenu((menuState) => !menuState);
     if (showSettings) {
       setShowSettings(false);
-
-      setTimeout(() => {
-        setShowMenu((menuState) => !menuState);
-      }, 350);
-
-      return;
     }
-    setShowMenu((menuState) => !menuState);
   };
 
   const handleShowSettings = () => {
@@ -53,6 +47,15 @@ const Navbar = () => {
 
   return (
     <>
+      {(showMenu || showSettings) && (
+        <div
+          id="backdrop"
+          onClick={handleCloseOverlays}
+          className="absolute top-0 left-0 h-full w-full bg-black/20"
+        />
+      )}
+
+      <Settings />
       <nav className="absolute top-0 right-0 w-1/2 p-4 flex justify-end gap-4 z-10">
         <button
           onClick={() => setIsInfinateConversation(!isInfinateConversation)}
@@ -80,13 +83,6 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {(showMenu || showSettings) && (
-        <div
-          id="backdrop"
-          onClick={handleCloseOverlays}
-          className="absolute top-0 left-0 h-full w-full bg-black/20"
-        />
-      )}
       <div
         id="sidebar"
         className={`fixed top-0 right-0 h-full transition-all duration-300 ease-in-out ${
@@ -115,7 +111,6 @@ const Navbar = () => {
           </button>
         </div>
       </div>
-      <Settings />
     </>
   );
 };
