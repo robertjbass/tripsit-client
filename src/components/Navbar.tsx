@@ -36,13 +36,19 @@ const Navbar = () => {
       <nav className="absolute top-0 p-4 flex justify-end w-full gap-4 z-10">
         <button
           onClick={() => setIsInfinateConversation(!isInfinateConversation)}
-          className="text-2xl hover:opacity-50"
+          className={[
+            "text-2xl",
+            !isInfinateConversation ? "text-red-500/80" : "hover:opacity-50",
+          ].join(" ")}
         >
           {isInfinateConversation ? <TbInfinity /> : <TbInfinityOff />}
         </button>
         <button
           onClick={() => setIsMuted(!isMuted)}
-          className="text-2xl hover:opacity-50"
+          className={[
+            "text-2xl",
+            isMuted ? "text-red-500/80" : "hover:opacity-50",
+          ].join(" ")}
         >
           {isMuted ? <HiOutlineVolumeOff /> : <HiOutlineVolumeUp />}
         </button>
