@@ -1,11 +1,19 @@
 import React, { createContext, useReducer } from "react";
+import { Action, User } from "./types";
 
-type Action = {
-  type: any;
-  payload?: any;
+const getCachedItem = (key: string) => {
+  const stringifiedState = localStorage.getItem("tripsitterState");
+  const item = stringifiedState ? JSON.parse(stringifiedState)[key] : null;
+  if (item) return item;
+  else return null;
 };
 
-type User = { [key: string]: any } | null;
+const updateCachedState = (state: State) => {
+  localStorage.setItem("tripsitterState", JSON.stringify(state));
+};
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
 type State = {
   apiUrl: string;
 
@@ -18,38 +26,67 @@ type State = {
   isMuted: boolean;
   setIsMuted: (isMuted: boolean) => void;
 
+  showSettings: boolean;
+  setShowSettings: (showSettings: boolean) => void;
+
   isInfinateConversation: boolean;
   setIsInfinateConversation: (isInfinateConversation: boolean) => void;
 };
 
 const initialState: State = {
-  apiUrl: import.meta.env.VITE_API_URL,
+  apiUrl,
 
-  user: null,
+  user: getCachedItem("user") || null,
   setUser: () => {},
 
   sessionId: null,
   setSessionId: () => {},
 
-  isMuted: false,
+  isMuted: getCachedItem("isMuted") || false,
   setIsMuted: () => {},
 
-  isInfinateConversation: false,
+  showSettings: false,
+  setShowSettings: () => {},
+
+  isInfinateConversation: getCachedItem("isInfinateConversation") || false,
   setIsInfinateConversation: () => {},
 };
 
 const userReducer = (state: State, action: Action) => {
+  let newState: State = state;
   switch (action.type) {
     case "SET_USER":
-      return { ...state, user: action.payload };
+      const user = action.payload;
+      if (!user) {
+        localStorage.removeItem("tripsitterState");
+        return { apiUrl } as State;
+      }
+
+      newState = { ...state, user };
+      updateCachedState(newState);
+      return newState;
+
     case "SET_IS_MUTED":
-      return { ...state, isMuted: action.payload };
+      newState = { ...state, isMuted: action.payload };
+      updateCachedState(newState);
+      return newState;
+
     case "SET_SESSION_ID":
-      return { ...state, sessionId: action.payload };
+      newState = { ...state, sessionId: action.payload };
+      updateCachedState(newState);
+      return newState;
+
     case "SET_IS_INFANATE_CONVERSATION":
-      return { ...state, isInfinateConversation: action.payload };
+      newState = { ...state, isInfinateConversation: action.payload };
+      updateCachedState(newState);
+      return newState;
+
+    case "SET_SHOW_SETTINGS":
+      newState = { ...state, showSettings: action.payload };
+      return newState;
+
     default:
-      return state;
+      return newState;
   }
 };
 
@@ -75,6 +112,9 @@ export const GlobalProvider: React.FC<{
         type: "SET_IS_INFANATE_CONVERSATION",
         payload: isInfinateConversation,
       });
+    },
+    setShowSettings: (showSettings: boolean) => {
+      dispatch({ type: "SET_SHOW_SETTINGS", payload: showSettings });
     },
   };
 
