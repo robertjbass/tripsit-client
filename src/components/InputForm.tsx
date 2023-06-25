@@ -82,7 +82,7 @@ const InputForm = ({
       };
 
       speechRecognition.onerror = (event: any) => {
-        console.log("Error occurred in recognition: " + event.error);
+        console.error("Error occurred in recognition: " + event.error);
       };
 
       speechRecognition.onend = () => {

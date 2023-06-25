@@ -2,12 +2,13 @@ import { useState, useContext, useEffect } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
 import { GoChevronRight } from "react-icons/go";
 import { tripsitter, boundries, general } from "@/context/options";
+import useToast from "@/hooks/useToast";
 
 const Settings = () => {
+  const [systemMessageInput, setSystemMessageInput] = useState<string>("");
   const { showSettings, setShowSettings, systemMessage, setSystemMessage } =
     useContext(GlobalContext);
-
-  const [systemMessageInput, setSystemMessageInput] = useState<string>("");
+  const { toast } = useToast();
 
   const canSave =
     systemMessageInput !== systemMessage && systemMessageInput.length > 0;
@@ -18,6 +19,9 @@ const Settings = () => {
 
   const handleSaveSystemMessage = () => {
     if (!canSave) return;
+
+    toast("Updated Prompt");
+
     setSystemMessage(systemMessageInput);
     setShowSettings(false);
   };

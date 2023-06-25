@@ -34,6 +34,9 @@ type State = {
 
   systemMessage: string;
   setSystemMessage: (systemMessage: string) => void;
+
+  toastMessage: string;
+  setToastMessage: (toastMessage: string) => void;
 };
 
 const initialState: State = {
@@ -56,6 +59,9 @@ const initialState: State = {
 
   systemMessage: "",
   setSystemMessage: () => {},
+
+  toastMessage: "",
+  setToastMessage: () => {},
 };
 
 const userReducer = (state: State, action: Action) => {
@@ -96,6 +102,10 @@ const userReducer = (state: State, action: Action) => {
       updateCachedState(newState);
       return newState;
 
+    case "SET_TOAST_MESSAGE":
+      newState = { ...state, toastMessage: action.payload };
+      return newState;
+
     default:
       return newState;
   }
@@ -129,6 +139,9 @@ export const GlobalProvider: React.FC<{
     },
     setSystemMessage: (systemMessage: string) => {
       dispatch({ type: "SET_SYSTEM_MESSAGE", payload: systemMessage });
+    },
+    setToastMessage: (toastMessage: string) => {
+      dispatch({ type: "SET_TOAST_MESSAGE", payload: toastMessage });
     },
   };
 
