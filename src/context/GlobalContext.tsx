@@ -1,5 +1,5 @@
 import React, { createContext, useReducer } from "react";
-import { Action, User } from "./types";
+import { Action, User } from "@/context/types";
 
 const getCachedItem = (key: string) => {
   const stringifiedState = localStorage.getItem("tripsitterState");
@@ -31,6 +31,9 @@ type State = {
 
   isInfinateConversation: boolean;
   setIsInfinateConversation: (isInfinateConversation: boolean) => void;
+
+  systemMessage: string;
+  setSystemMessage: (systemMessage: string) => void;
 };
 
 const initialState: State = {
@@ -42,7 +45,7 @@ const initialState: State = {
   sessionId: null,
   setSessionId: () => {},
 
-  isMuted: getCachedItem("isMuted") || false,
+  isMuted: getCachedItem("isMuted") || true,
   setIsMuted: () => {},
 
   showSettings: false,
@@ -50,6 +53,9 @@ const initialState: State = {
 
   isInfinateConversation: getCachedItem("isInfinateConversation") || false,
   setIsInfinateConversation: () => {},
+
+  systemMessage: "",
+  setSystemMessage: () => {},
 };
 
 const userReducer = (state: State, action: Action) => {
@@ -85,6 +91,11 @@ const userReducer = (state: State, action: Action) => {
       newState = { ...state, showSettings: action.payload };
       return newState;
 
+    case "SET_SYSTEM_MESSAGE":
+      newState = { ...state, systemMessage: action.payload };
+      updateCachedState(newState);
+      return newState;
+
     default:
       return newState;
   }
@@ -115,6 +126,9 @@ export const GlobalProvider: React.FC<{
     },
     setShowSettings: (showSettings: boolean) => {
       dispatch({ type: "SET_SHOW_SETTINGS", payload: showSettings });
+    },
+    setSystemMessage: (systemMessage: string) => {
+      dispatch({ type: "SET_SYSTEM_MESSAGE", payload: systemMessage });
     },
   };
 
