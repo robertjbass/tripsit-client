@@ -3,6 +3,7 @@ import { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
 import { v4 } from "uuid";
 import type { Message } from "@/context/types";
+import { general } from "@/context/options";
 
 const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -12,8 +13,14 @@ const useChat = () => {
   const [currentSentence, setCurrentSentence] = useState<string>("");
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [allAudioHasPlayed, setAllAudioHasPlayed] = useState<boolean>(false);
-  const { apiUrl, isMuted, sessionId, setSessionId } =
-    useContext(GlobalContext);
+  const {
+    apiUrl,
+    isMuted,
+    sessionId,
+    setSessionId,
+    systemMessage,
+    setSystemMessage,
+  } = useContext(GlobalContext);
 
   const api = useApi();
 
@@ -23,6 +30,10 @@ const useChat = () => {
 
     const uuid = v4();
     setSessionId(uuid);
+  }, []);
+
+  useEffect(() => {
+    setSystemMessage(general);
   }, []);
 
   useEffect(() => {
@@ -37,6 +48,12 @@ const useChat = () => {
       setAllAudioHasPlayed(true);
     }
   }, [isResponding, isSpeaking, sentencesToRead, currentSentence]);
+
+  useEffect(() => {
+    if (!systemMessage) return;
+
+    api.post("/set-prompt", { sessionId, systemMessage });
+  }, [systemMessage, sessionId]);
 
   //* Connect to the SSE endpoint and listen for messages
   //? Format and update message state as they stream in

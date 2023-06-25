@@ -1,9 +1,30 @@
-import { useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
 import { GoChevronRight } from "react-icons/go";
+import { tripsitter, boundries, general } from "@/context/options";
+import useToast from "@/hooks/useToast";
 
 const Settings = () => {
-  const { showSettings, setShowSettings } = useContext(GlobalContext);
+  const [systemMessageInput, setSystemMessageInput] = useState<string>("");
+  const { showSettings, setShowSettings, systemMessage, setSystemMessage } =
+    useContext(GlobalContext);
+  const { toast } = useToast();
+
+  const canSave =
+    systemMessageInput !== systemMessage && systemMessageInput.length > 0;
+
+  useEffect(() => {
+    setSystemMessageInput(systemMessage);
+  }, [systemMessage]);
+
+  const handleSaveSystemMessage = () => {
+    if (!canSave) return;
+
+    toast("Updated Prompt");
+
+    setSystemMessage(systemMessageInput);
+    setShowSettings(false);
+  };
 
   return (
     <div
@@ -33,7 +54,32 @@ const Settings = () => {
         >
           <div id="prompt" className="flex flex-col h-1/2 my-2">
             <strong className="mb-2 text-lg">Prompt</strong>
-            <textarea className="h-full border-2 rounded p-4 resize-none focus:outline-none focus:border-blue-400 transition-colors"></textarea>
+            <textarea
+              value={systemMessageInput}
+              onChange={(e) => setSystemMessageInput(e.target.value)}
+              className="h-full border-2 rounded p-4 resize-none focus:outline-none focus:border-blue-400 transition-colors"
+            ></textarea>
+          </div>
+
+          <div id="presets" className="flex gap-4">
+            <button
+              className="rounded h-12 w-24 text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+              onClick={() => setSystemMessageInput(general)}
+            >
+              General
+            </button>
+            <button
+              className="rounded h-12 w-24 text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+              onClick={() => setSystemMessageInput(tripsitter)}
+            >
+              Tripsitter
+            </button>
+            <button
+              className="rounded h-12 w-24 text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+              onClick={() => setSystemMessageInput(boundries)}
+            >
+              Boundries
+            </button>
           </div>
         </div>
 
@@ -47,7 +93,15 @@ const Settings = () => {
           >
             Cancel
           </button>
-          <button className="rounded h-12 w-24 mx-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors">
+          <button
+            disabled={!canSave}
+            onClick={handleSaveSystemMessage}
+            className={`rounded h-12 w-24 mx-2 text-white transition-colors ${
+              canSave
+                ? "bg-blue-500 hover:bg-blue-600"
+                : "bg-blue-300 cursor-not-allowed"
+            }`}
+          >
             Save
           </button>
         </div>
