@@ -2,8 +2,8 @@ import useApi from "@/hooks/useApi";
 import { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "@/context/GlobalContext";
 import { v4 } from "uuid";
-import type { Message } from "@/context/types";
 import { general } from "@/context/options";
+import type { Message } from "@/context/types";
 
 const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);

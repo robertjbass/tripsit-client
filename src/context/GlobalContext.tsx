@@ -37,6 +37,9 @@ type State = {
 
   toastMessage: string;
   setToastMessage: (toastMessage: string) => void;
+
+  userDevice: null | "ios" | "android" | "desktop";
+  setUserDevice: (userDevice: null | "ios" | "android" | "desktop") => void;
 };
 
 const initialState: State = {
@@ -62,6 +65,9 @@ const initialState: State = {
 
   toastMessage: "",
   setToastMessage: () => {},
+
+  userDevice: null,
+  setUserDevice: () => {},
 };
 
 const userReducer = (state: State, action: Action) => {
@@ -106,6 +112,10 @@ const userReducer = (state: State, action: Action) => {
       newState = { ...state, toastMessage: action.payload };
       return newState;
 
+    case "SET_USER_DEVICE":
+      newState = { ...state, userDevice: action.payload };
+      return newState;
+
     default:
       return newState;
   }
@@ -142,6 +152,9 @@ export const GlobalProvider: React.FC<{
     },
     setToastMessage: (toastMessage: string) => {
       dispatch({ type: "SET_TOAST_MESSAGE", payload: toastMessage });
+    },
+    setUserDevice: (userDevice: null | "ios" | "android" | "desktop") => {
+      dispatch({ type: "SET_USER_DEVICE", payload: userDevice });
     },
   };
 
